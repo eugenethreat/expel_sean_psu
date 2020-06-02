@@ -5,11 +5,8 @@
  */
 package org.themajoritytwitterbot;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -18,13 +15,19 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.api.TweetsResources;
 import twitter4j.conf.ConfigurationBuilder;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
- *
  * @author eugene
  */
 class MajorityTwitterBot {
@@ -39,97 +42,111 @@ class MajorityTwitterBot {
         TwitterFactory tf = new TwitterFactory(cb.build());
 
         TweetsResources tr = tf.getInstance().tweets();
-        /*
-        with more verbosity...
-        Twitter t = tf.getInstance();
-        TweetsResources tr = t.tweets();
-         */
 
-        ArrayList<String> adjectives = wordListGenerator();
-        //the arraylist that contains the list of words 
-        timeToTweet(tr, adjectives);
+        timeToTweet(tr);
 
-        //System.out.println("success!");
     }
 
     private ConfigurationBuilder cbProperties(ConfigurationBuilder cb) {
         cb.setDebugEnabled(true);
 
-        File api = new File("api.txt");
-            //my key is NOT in a file called api.txt 
         try {
-            BufferedReader rdr = new BufferedReader(new FileReader(api));
-            String oack = rdr.readLine();
-            String oacks = rdr.readLine();
-            String oaat = rdr.readLine();
-            String oaas = rdr.readLine();
+            File api = File.createTempFile("api", ".txt");
+            //https://www.tutorialspoint.com/java/io/file_createtempfile_directory.htm
+            try {
+                InputStream apiStream = getClass().getClassLoader().getResourceAsStream("api.txt");
+                FileUtils.copyInputStreamToFile(apiStream, api);
 
-            cb.setOAuthConsumerKey(oack);
-            cb.setOAuthConsumerSecret(oacks);
-            cb.setOAuthAccessToken(oaat);
-            cb.setOAuthAccessTokenSecret(oaas);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
+            //my key is NOT in a file called api.txt
+            try {
+                BufferedReader rdr = new BufferedReader(new FileReader(api));
+                String oack = rdr.readLine();
+                String oacks = rdr.readLine();
+                String oaat = rdr.readLine();
+                String oaas = rdr.readLine();
+
+                cb.setOAuthConsumerKey(oack);
+                cb.setOAuthConsumerSecret(oacks);
+                cb.setOAuthAccessToken(oaat);
+                cb.setOAuthAccessTokenSecret(oaas);
+
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        
+
+
         return cb;
     }
 
-    private ArrayList<String> wordListGenerator() {
+    private void reply() {
 
-        File adjectivesFromFile = new File("wordlist.txt");
-        Scanner scnr;
-        ArrayList<String> adjectives = new ArrayList();
-
-        try {
-            scnr = new Scanner(adjectivesFromFile);
-
-            while (scnr.hasNext()) {
-                adjectives.add(scnr.nextLine());
-            }
-
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return adjectives;
     }
 
-    private void tweetWriter(TweetsResources tr, ArrayList<String> adjectives) {
+
+    private void tweetWriter(TweetsResources tr) {
         try {
-            String[] template = {"the ", "", " majority"};
+            String tweet = "";
+            DateFormat df = new SimpleDateFormat("hh:mm");
+            Date dateobj = new Date();
 
-            Random someRandom = new Random();
-            int randInt = someRandom.nextInt(adjectives.size() - 1);
-            //-1 ensures that the fetched int will never exceed the size of the wordlist. 
-            template[1] = adjectives.get(randInt);
+            //String picture = "src/main/resources/seansetnick.png";
 
-            String tweet = template[0] + template[1] + template[2];
-            tr.updateStatus(tweet);
+            //File seanPic = new File(picture);
+            InputStream seanPicStream = getClass().getClassLoader().getResourceAsStream("seansetnick.png");
+            File seanPic = File.createTempFile("seansetnick", ".png");
 
-            System.out.println("new tweet posted");
+            //https://stackoverflow.com/questions/26347415/inputstream-getresourceasstream-giving-null-pointer-exception
+
+            try {
+                FileUtils.copyInputStreamToFile(seanPicStream, seanPic);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String dateString = df.format(dateobj);
+            //https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html date time object
+
+            tweet = tweet + "It's " + dateString + " and @penn_state still hasn't expelled Sean Setnick.";
+
+            StatusUpdate newTweet = new StatusUpdate(tweet);
+            newTweet.media(seanPic); //adds the picture to be tweeted
+
+            tr.updateStatus(newTweet);
+
+            System.out.println(dateString + "new tweet posted");
 
         } catch (TwitterException ex) {
             Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         //from http://twitter4j.org/javadoc/twitter4j/api/TweetsResources.html 
     }
 
-    private void timeToTweet(TweetsResources tr, ArrayList<String> adjectives) {
+    private void timeToTweet(TweetsResources tr) {
 
         Runnable runningTweetWriter = new Runnable() {
             @Override
             public void run() {
-                tweetWriter(tr, adjectives);
+                tweetWriter(tr);
             }
         };
 
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
-        exec.scheduleAtFixedRate(runningTweetWriter, 0, 1, TimeUnit.HOURS);
-        //sends a new tweet every hour
+        //exec.scheduleAtFixedRate(runningTweetWriter, 0, 1, TimeUnit.HOURS);
+        exec.scheduleAtFixedRate(runningTweetWriter, 0, 13, TimeUnit.MINUTES);
+
+        //sends a new tweet every 13 minutes
 
         //https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ScheduledExecutorService.html
         //https://stackoverflow.com/questions/33073671/how-to-execute-a-method-every-minute
