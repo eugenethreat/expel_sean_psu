@@ -30,8 +30,6 @@ public class App {
     public static void main(String args[]) {
 
         //MajorityTwitterBot tb = new MajorityTwitterBot();
-        System.out.println("HELP! ");
-
            /*
         generating the "bot" itself; oauth token and such
          */
@@ -50,8 +48,6 @@ public class App {
 
     private static ConfigurationBuilder cbProperties(ConfigurationBuilder cb) {
         cb.setDebugEnabled(true);
-
-        System.out.println("cbproper");
 
         try {
             File api = File.createTempFile("api", ".txt");
@@ -101,14 +97,10 @@ public class App {
 
     private static void tweetWriter(TweetsResources tr) {
 
-        System.out.println("tweetwriter");
-
         try {
             String tweet = "";
             DateFormat df = new SimpleDateFormat("hh:mm");
             Date dateobj = new Date();
-
-            System.out.println("try catch");
 
             //String picture = "src/main/resources/seansetnick.png";
 
@@ -116,8 +108,6 @@ public class App {
             InputStream seanPicStream = App.class.getClassLoader().getResourceAsStream("seansetnick.PNG");
             File seanPic = File.createTempFile("seansetnick", ".PNG");
             //                InputStream apiStream = App.class.getClassLoader().getResourceAsStream("api.txt");
-
-            System.out.println("seanpic");
 
             //https://stackoverflow.com/questions/26347415/inputstream-getresourceasstream-giving-null-pointer-exception
 
@@ -128,14 +118,10 @@ public class App {
                 System.out.println(e.toString());
             }
 
-            System.out.println("datestring");
-
             String dateString = df.format(dateobj);
             //https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html date time object
 
             tweet = tweet + "It's " + dateString + " and @penn_state still hasn't expelled Sean Setnick.";
-
-            System.out.println("tweet made");
 
             StatusUpdate newTweet = new StatusUpdate(tweet);
             newTweet.media(seanPic); //adds the picture to be tweeted
