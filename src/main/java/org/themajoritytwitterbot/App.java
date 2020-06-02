@@ -15,6 +15,10 @@ import twitter4j.conf.ConfigurationBuilder;
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -34,11 +38,12 @@ public class App {
 
     }
 
-    private static ConfigurationBuilder cbProperties(ConfigurationBuilder cb) {
+    public static ConfigurationBuilder cbProperties(ConfigurationBuilder cb) {
         cb.setDebugEnabled(true);
 
+        File api = null;
         try {
-            File api = File.createTempFile("api", ".txt");
+            api = File.createTempFile("api", ".txt");
             //https://www.tutorialspoint.com/java/io/file_createtempfile_directory.htm
 
             InputStream apiStream = App.class.getClassLoader().getResourceAsStream("api.txt");
@@ -53,36 +58,47 @@ public class App {
             cb.setOAuthConsumerSecret(oacks);
             cb.setOAuthAccessToken(oaat);
             cb.setOAuthAccessTokenSecret(oaas);
-        } catch {
 
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
 
         return cb;
     }
 
-    private void reply() {
+    public void reply() {
         //TODO: Add function to reply to new tweets
     }
 
 
-    private static void tweetWriter(TweetsResources tr) {
+    public static void tweetWriter(TweetsResources tr) {
 
         try {
             String tweet = "";
-            DateFormat df = new SimpleDateFormat("hh:mm");
-            Date dateobj = new Date();
 
             InputStream seanPicStream = App.class.getClassLoader().getResourceAsStream("seansetnick.PNG");
             File seanPic = File.createTempFile("seansetnick", ".PNG");
-
-
             FileUtils.copyInputStreamToFile(seanPicStream, seanPic);
 
+            //move this to its own method
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime incident = LocalDateTime.of(2020, Month.MAY, 31, 19, 36);
+            Duration duration = Duration.between(incident, now);
 
-            String dateString = df.format(dateobj);
-            //https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html date time object
+            String durationString = duration.toString();
 
-            tweet = tweet + "It's " + dateString + " and @penn_state still hasn't expelled Sean Setnick.";
+            String[] split = durationString.split("H");
+            String[] split2 = split[1].split("M");
+            String[] hourMin = {split[0], split2[0]};
+            hourMin[0] = hourMin[0].substring(2);
+
+            String dateString = hourMin[0] + " hours and " + hourMin[1] + " minutes";
+
+            tweet = tweet + "It's been " + dateString + " since this video surfaced and @penn_state still hasn't expelled Sean Setnick.";
+            /*
+            video posted at 7:36pm may 31st - https://twitter.com/YonceLipa/status/1267238505002020865
+             */
 
             StatusUpdate newTweet = new StatusUpdate(tweet);
             newTweet.media(seanPic); //adds the picture to be tweeted
@@ -102,7 +118,7 @@ public class App {
         }
     }
 
-    private static void timeToTweet(TweetsResources tr) {
+    public static void timeToTweet(TweetsResources tr) {
 
         System.out.println("time to tweet");
 
