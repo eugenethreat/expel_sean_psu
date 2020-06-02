@@ -22,27 +22,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * @author eugene
- */
 public class App {
 
     public static void main(String args[]) {
 
-        //MajorityTwitterBot tb = new MajorityTwitterBot();
-           /*
-        generating the "bot" itself; oauth token and such
-         */
-
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb = cbProperties(cb); //all the properties in their own method
-
         TwitterFactory tf = new TwitterFactory(cb.build());
-
         TweetsResources tr = tf.getInstance().tweets();
-
         timeToTweet(tr);
-
 
     }
 
@@ -52,46 +40,28 @@ public class App {
         try {
             File api = File.createTempFile("api", ".txt");
             //https://www.tutorialspoint.com/java/io/file_createtempfile_directory.htm
-            try {
-                InputStream apiStream = App.class.getClassLoader().getResourceAsStream("api.txt");
-                FileUtils.copyInputStreamToFile(apiStream, api);
 
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.out.println(e.toString());
-            }
+            InputStream apiStream = App.class.getClassLoader().getResourceAsStream("api.txt");
+            FileUtils.copyInputStreamToFile(apiStream, api);
+            BufferedReader rdr = new BufferedReader(new FileReader(api));
+            String oack = rdr.readLine();
+            String oacks = rdr.readLine();
+            String oaat = rdr.readLine();
+            String oaas = rdr.readLine();
 
-            //my key is NOT in a file called api.txt
-            try {
-                BufferedReader rdr = new BufferedReader(new FileReader(api));
-                String oack = rdr.readLine();
-                String oacks = rdr.readLine();
-                String oaat = rdr.readLine();
-                String oaas = rdr.readLine();
+            cb.setOAuthConsumerKey(oack);
+            cb.setOAuthConsumerSecret(oacks);
+            cb.setOAuthAccessToken(oaat);
+            cb.setOAuthAccessTokenSecret(oaas);
+        } catch {
 
-                cb.setOAuthConsumerKey(oack);
-                cb.setOAuthConsumerSecret(oacks);
-                cb.setOAuthAccessToken(oaat);
-                cb.setOAuthAccessTokenSecret(oaas);
-
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
-                System.out.println(ex.toString());
-            } catch (IOException ex) {
-                Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
-                System.out.println(ex.toString());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println(e.toString());
         }
-
 
         return cb;
     }
 
     private void reply() {
-
+        //TODO: Add function to reply to new tweets
     }
 
 
@@ -102,21 +72,12 @@ public class App {
             DateFormat df = new SimpleDateFormat("hh:mm");
             Date dateobj = new Date();
 
-            //String picture = "src/main/resources/seansetnick.png";
-
-            //File seanPic = new File(picture);
             InputStream seanPicStream = App.class.getClassLoader().getResourceAsStream("seansetnick.PNG");
             File seanPic = File.createTempFile("seansetnick", ".PNG");
-            //                InputStream apiStream = App.class.getClassLoader().getResourceAsStream("api.txt");
 
-            //https://stackoverflow.com/questions/26347415/inputstream-getresourceasstream-giving-null-pointer-exception
 
-            try {
-                FileUtils.copyInputStreamToFile(seanPicStream, seanPic);
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.out.println(e.toString());
-            }
+            FileUtils.copyInputStreamToFile(seanPicStream, seanPic);
+
 
             String dateString = df.format(dateobj);
             //https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html date time object
@@ -153,16 +114,13 @@ public class App {
         };
 
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
-        //exec.scheduleAtFixedRate(runningTweetWriter, 0, 1, TimeUnit.HOURS);
         exec.scheduleAtFixedRate(runningTweetWriter, 0, 13, TimeUnit.MINUTES);
 
         //sends a new tweet every 13 minutes
 
         //https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ScheduledExecutorService.html
         //https://stackoverflow.com/questions/33073671/how-to-execute-a-method-every-minute
-        /*
-        need to figure out how to keep this running forever so it tweets repeatedly
-         */
+
     }
 
 }
