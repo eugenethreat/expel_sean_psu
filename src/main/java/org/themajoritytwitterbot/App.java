@@ -13,13 +13,9 @@ import twitter4j.api.TweetsResources;
 import twitter4j.conf.ConfigurationBuilder;
 
 import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -39,88 +35,107 @@ public class App {
     }
 
     public static ConfigurationBuilder cbProperties(ConfigurationBuilder cb) {
-        cb.setDebugEnabled(true);
-
-        File api = null;
+        /*
+            Builds the object that will interact with the Twitter API
+        */
         try {
-            api = File.createTempFile("api", ".txt");
-            //https://www.tutorialspoint.com/java/io/file_createtempfile_directory.htm
+            System.out.println("Loading api keys...");
+            cb.setDebugEnabled(true);
 
+            File api = File.createTempFile("api", ".txt");
             InputStream apiStream = App.class.getClassLoader().getResourceAsStream("api.txt");
             FileUtils.copyInputStreamToFile(apiStream, api);
+            //https://www.tutorialspoint.com/java/io/file_createtempfile_directory.htm
+            //reads twitter api credentials
+
             BufferedReader rdr = new BufferedReader(new FileReader(api));
             String oack = rdr.readLine();
             String oacks = rdr.readLine();
             String oaat = rdr.readLine();
             String oaas = rdr.readLine();
+            //naming conventions :)
+
+            rdr.close();
+            apiStream.close(); //cleaning up
 
             cb.setOAuthConsumerKey(oack);
             cb.setOAuthConsumerSecret(oacks);
             cb.setOAuthAccessToken(oaat);
             cb.setOAuthAccessTokenSecret(oaas);
 
+            System.out.println("API key loaded!");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
         return cb;
     }
 
     public void reply() {
         //TODO: Add function to reply to new tweets
+        /*
+            every 5 minutes, check if psu has tweeted and store the most recent tweet
+            if its different than the currently stored one, reply.
+         */
     }
 
+    public static String getDateDifference(){
+         /*
+            Calculates the difference between the video's emergence and current time.
+            video posted at 7:36pm may 31st - https://twitter.com/YonceLipa/status/1267238505002020865
+         */
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime incident = LocalDateTime.of(2020, Month.MAY, 31, 19, 36);
+        Duration duration = Duration.between(incident, now);
+        String durationString = duration.toString();
+        //gets the difference as a duration object and converts to string.
+
+        String hours = durationString.split("H")[0].substring(2);
+        String minutes = durationString.split("M")[0].substring(5);
+
+        return hours + " hours and " + minutes + " minutes";
+
+    }
 
     public static void tweetWriter(TweetsResources tr) {
-
+        /*
+            Handles writing and posting the tweet via API calls.
+        */
         try {
-            String tweet = "";
+            System.out.println("buliding tweet...");
 
             InputStream seanPicStream = App.class.getClassLoader().getResourceAsStream("seansetnick.PNG");
             File seanPic = File.createTempFile("seansetnick", ".PNG");
             FileUtils.copyInputStreamToFile(seanPicStream, seanPic);
+            //creating the picture to be attached
+            seanPicStream.close(); //cleaning up
 
-            //move this to its own method
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime incident = LocalDateTime.of(2020, Month.MAY, 31, 19, 36);
-            Duration duration = Duration.between(incident, now);
-
-            String durationString = duration.toString();
-
-            String[] split = durationString.split("H");
-            String[] split2 = split[1].split("M");
-            String[] hourMin = {split[0], split2[0]};
-            hourMin[0] = hourMin[0].substring(2);
-
-            String dateString = hourMin[0] + " hours and " + hourMin[1] + " minutes";
-
-            tweet = tweet + "It's been " + dateString + " since this video surfaced and @penn_state still hasn't expelled Sean Setnick.";
-            /*
-            video posted at 7:36pm may 31st - https://twitter.com/YonceLipa/status/1267238505002020865
-             */
+            String dateString = getDateDifference();
+            //calling method that gets the date diff to be added
+            String tweet = "It's been " + dateString + " since this video surfaced and @penn_state still hasn't expelled Sean Setnick.";
 
             StatusUpdate newTweet = new StatusUpdate(tweet);
             newTweet.media(seanPic); //adds the picture to be tweeted
-
-            tr.updateStatus(newTweet);
+            tr.updateStatus(newTweet); //calls to the api
 
             System.out.println(dateString + "new tweet posted");
 
         } catch (TwitterException ex) {
             Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println(ex.toString());
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println(e.toString());
-
             //from http://twitter4j.org/javadoc/twitter4j/api/TweetsResources.html
         }
     }
 
     public static void timeToTweet(TweetsResources tr) {
+        /*
+            Repeats the task as necessary at minute intervals, as a runnable.
+        */
 
-        System.out.println("time to tweet");
+        System.out.println("About to tweet...");
 
         Runnable runningTweetWriter = new Runnable() {
             @Override
@@ -131,8 +146,7 @@ public class App {
 
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         exec.scheduleAtFixedRate(runningTweetWriter, 0, 13, TimeUnit.MINUTES);
-
-        //sends a new tweet every 13 minutes
+        //sends a new tweet every 13 minutes indefinitely
 
         //https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ScheduledExecutorService.html
         //https://stackoverflow.com/questions/33073671/how-to-execute-a-method-every-minute
