@@ -117,8 +117,8 @@ public class App {
             //creating the picture to be attached
             seanPicStream.close(); //cleaning up
 
-            InputStream nothingStream = App.class.getClassLoader().getResourceAsStream("statement.JPG");
-            File nothingBurger = File.createTempFile("statement", ".JPG");
+            InputStream nothingStream = App.class.getClassLoader().getResourceAsStream("statement.jpg");
+            File nothingBurger = File.createTempFile("statement", ".jpg");
             FileUtils.copyInputStreamToFile(nothingStream, nothingBurger);
             //creating the picture to be attached
             nothingStream.close(); //cleaning up
