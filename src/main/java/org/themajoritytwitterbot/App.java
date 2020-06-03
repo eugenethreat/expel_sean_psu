@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.UploadedMedia;
 import twitter4j.api.TweetsResources;
 import twitter4j.conf.ConfigurationBuilder;
 
@@ -80,15 +81,19 @@ public class App {
          */
     }
 
-    public static String getDateDifference(){
+    public static String getDateDifference() {
          /*
             Calculates the difference between the video's emergence and current time.
             video posted at 7:36pm may 31st - https://twitter.com/YonceLipa/status/1267238505002020865
+
+            date psu decided to do nothing - https://twitter.com/penn_state/status/1267980418256711680/photo/1
          */
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime incident = LocalDateTime.of(2020, Month.MAY, 31, 19, 36);
-        Duration duration = Duration.between(incident, now);
+        //LocalDateTime incident = LocalDateTime.of(2020, Month.MAY, 31, 19, 36);
+        LocalDateTime nothingBurger = LocalDateTime.of(2020, Month.JUNE, 2, 20, 44);
+
+        Duration duration = Duration.between(nothingBurger, now);
         String durationString = duration.toString();
         //gets the difference as a duration object and converts to string.
 
@@ -112,12 +117,25 @@ public class App {
             //creating the picture to be attached
             seanPicStream.close(); //cleaning up
 
+            InputStream nothingStream = App.class.getClassLoader().getResourceAsStream("statement.JPG");
+            File nothingBurger = File.createTempFile("statement", ".JPG");
+            FileUtils.copyInputStreamToFile(nothingStream, nothingBurger);
+            //creating the picture to be attached
+            nothingStream.close(); //cleaning up
+
             String dateString = getDateDifference();
             //calling method that gets the date diff to be added
-            String tweet = "It's been " + dateString + " since this video surfaced and @penn_state still hasn't expelled Sean Setnick.";
+            //String tweet = "It's been " + dateString + " since this video surfaced and @penn_state still hasn't expelled Sean Setnick.";
+            String tweet = "It's been " + dateString + " since @penn_state forgot about their Code of Conduct, the Smeal Honor Code, and the comfort and safety of students of color.";
+
+            long[] mediaIds = new long[2];
+            UploadedMedia media1 = tr.uploadMedia(seanPic);
+            mediaIds[0] = media1.getMediaId();
+            UploadedMedia media2 = tr.uploadMedia(nothingBurger);
+            mediaIds[1] = media2.getMediaId();
 
             StatusUpdate newTweet = new StatusUpdate(tweet);
-            newTweet.media(seanPic); //adds the picture to be tweeted
+            newTweet.setMediaIds(mediaIds);
             tr.updateStatus(newTweet); //calls to the api
 
             System.out.println(dateString + "new tweet posted");

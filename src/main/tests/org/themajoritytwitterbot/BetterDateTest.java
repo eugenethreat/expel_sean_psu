@@ -13,17 +13,17 @@ class BetterDateTest {
     @Test
     void getDateDifference() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime incident = LocalDateTime.of(2020, Month.MAY, 31, 19, 36);
-        Duration duration = Duration.between(incident, now);
+        //LocalDateTime incident = LocalDateTime.of(2020, Month.MAY, 31, 19, 36);
+        LocalDateTime nothingBurger = LocalDateTime.of(2020, Month.JUNE, 02, 20, 44);
+
+        Duration duration = Duration.between(nothingBurger, now);
         String durationString = duration.toString();
         //gets the difference as a duration object and converts to string.
 
         String hours = durationString.split("H")[0].substring(2);
         String minutes = durationString.split("M")[0].substring(5);
 
-        String dateString = hours + " hours and " + minutes + " minutes";
+        System.out.println(hours + minutes );
 
-        System.out.println(dateString);
-        //passing by default :)
     }
 }
