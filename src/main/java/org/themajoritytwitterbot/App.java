@@ -123,7 +123,7 @@ public class App {
             System.out.println(dateString + "new tweet posted");
 
         } catch (TwitterException ex) {
-            Logger.getLogger(MajorityTwitterBot.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex);
         } catch (IOException e) {
             e.printStackTrace();
             //from http://twitter4j.org/javadoc/twitter4j/api/TweetsResources.html
